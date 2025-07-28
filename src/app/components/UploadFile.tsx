@@ -10,11 +10,12 @@ interface UploadedFile {
 }
 
 interface UploadFileProps {
-  onFileUpload?: (file: UploadedFile | null) => void;
+  onFileUpload?: (file: UploadedFile | null, actualFile?: File) => void;
 }
 
 export default function UploadFile({ onFileUpload }: UploadFileProps) {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [actualFileObject, setActualFileObject] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentUploadingFile, setCurrentUploadingFile] = useState<File | null>(
@@ -58,9 +59,10 @@ export default function UploadFile({ onFileUpload }: UploadFileProps) {
             };
 
             setUploadedFile(newFile);
+            setActualFileObject(file);
 
             setTimeout(() => {
-              onFileUpload?.(newFile);
+              onFileUpload?.(newFile, file);
             }, 0);
 
             setUploadProgress(0);
@@ -77,6 +79,7 @@ export default function UploadFile({ onFileUpload }: UploadFileProps) {
 
   const handleFileDelete = () => {
     setUploadedFile(null);
+    setActualFileObject(null);
 
     setTimeout(() => {
       onFileUpload?.(null);

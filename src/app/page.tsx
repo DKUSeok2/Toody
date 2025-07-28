@@ -10,14 +10,17 @@ interface UploadedFile {
   name: string;
   size: number;
   id: string;
+  file?: File; // 실제 File 객체 추가
 }
 
 export default function Home() {
   const router = useRouter();
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [actualFile, setActualFile] = useState<File | null>(null); // 실제 파일 객체 저장
 
-  const handleFileUpload = (file: UploadedFile | null) => {
+  const handleFileUpload = (file: UploadedFile | null, actualFileObj?: File) => {
     setUploadedFile(file);
+    setActualFile(actualFileObj || null);
   };
 
   return (
@@ -78,7 +81,7 @@ export default function Home() {
         {uploadedFile != null && (
           <div className="flex-1 max-w-lg pl-4 flex justify-center">
             <div className="w-full max-w-xl">
-              <MeetingInfoForm />
+              <MeetingInfoForm uploadedFile={actualFile} />
             </div>
           </div>
         )}
