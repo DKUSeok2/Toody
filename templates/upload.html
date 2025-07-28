@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회의록 요약기</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            padding: 40px;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+            margin-right: 30px;
+            height: fit-content;
+        }
+
+        .main-content {
+            flex: 1;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="file"], input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .meeting-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .meeting-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .loading {
+            color: #007BFF;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>회의 목록</h3>
+        <div id="meetingsList">
+            회의 목록을 불러오는 중...
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h2>회의록 파일 업로드 테스트</h2>
+        
+        <form id="uploadForm" action="/api/upload" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">파일:</label>
+                <input type="file" id="file" name="file" accept=".txt,.pdf" required>
+            </div>
+
+            <div class="form-group">
+                <label for="meeting_name">회의명:</label>
+                <input type="text" id="meeting_name" name="meeting_name" value="마케팅팀 회의" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date">날짜:</label>
+                <input type="date" id="date" name="date" value="2025-01-19" required>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="password_enabled" name="password_enabled" value="true" checked>
+                    비밀번호 보호 활성화
+                </label>
+            </div>
+
+            <button type="submit">업로드 테스트</button>
+        </form>
+
+        <div id="loading" style="display: none;" class="loading">
+            업로드 및 요약 생성 중입니다...
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loadingDiv = document.getElementById('loading');
+        const meetingsListDiv = document.getElementById('meetingsList');
+
+        // 페이지 로드시 회의 목록 불러오기
+        loadMeetings();
+
+        // 폼 제출시 로딩 표시
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault(); // 기본 form 제출 방지
+            loadingDiv.style.display = 'block';
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // 성공 시 결과 페이지로 이동
+                    window.location.href = `/result/${data.data.meeting_id}`;
+                } else {
+                    alert('업로드 실패: ' + data.message);
+                    loadingDiv.style.display = 'none';
+                }
+            } catch (error) {
+                alert('업로드 중 오류가 발생했습니다: ' + error.message);
+                loadingDiv.style.display = 'none';
+            }
+        });
+
+        // 회의 목록 불러오기
+        async function loadMeetings() {
+            try {
+                const response = await fetch('/api/meetings');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    if (data.meetings.length === 0) {
+                        meetingsListDiv.innerHTML = '<p>업로드된 회의가 없습니다.</p>';
+                    } else {
+                        const meetingsHTML = data.meetings.map(meeting => `
+                            <div class="meeting-item" onclick="viewMeeting('${meeting.meeting_id}')">
+                                <strong>${meeting.name}</strong><br>
+                                <small>${meeting.date}</small>
+                            </div>
+                        `).join('');
+                        meetingsListDiv.innerHTML = meetingsHTML;
+                    }
+                } else {
+                    meetingsListDiv.innerHTML = '<p>회의 목록을 불러올 수 없습니다.</p>';
+                }
+            } catch (err) {
+                meetingsListDiv.innerHTML = '<p>회의 목록 로드 실패</p>';
+            }
+        }
+
+        // 회의 보기
+        function viewMeeting(meetingId) {
+            window.location.href = `/result/${meetingId}`;
+        }
+    </script>
+</body>
+</html>

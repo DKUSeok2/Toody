@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>업로드 결과</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #fff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #495057;
+        }
+
+        .meeting-item {
+            background-color: #495057;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .meeting-item:hover {
+            background-color: #6c757d;
+        }
+
+        .meeting-item.active {
+            background-color: #007bff;
+        }
+
+        .meeting-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .meeting-date {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 800px;
+        }
+
+        .result-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #28a745;
+            margin-bottom: 30px;
+        }
+
+        .info-section {
+            margin-bottom: 30px;
+        }
+
+        .info-section p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .password-box {
+            background-color: #fff3cd;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+
+        .summary-box {
+            background-color: #d1ecf1;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .summary-content {
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .download-section, .share-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .download-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .pdf-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .pdf-button:hover {
+            background-color: #c82333;
+        }
+
+        .txt-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .txt-button:hover {
+            background-color: #218838;
+        }
+
+        .share-button {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .share-button:hover {
+            background-color: #138496;
+        }
+
+        .copy-button {
+            background-color: #6c757d;
+            color: white;
+            font-size: 12px;
+            padding: 8px 16px;
+        }
+
+        .copy-button:hover {
+            background-color: #545b62;
+        }
+
+        .back-button {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>회의 목록</h3>
+        <div id="meetings-list">
+            <!-- 회의 목록이 여기에 동적으로 로드됩니다 -->
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="result-container">
+            <h2>업로드 결과</h2>
+            
+            <div class="info-section">
+                <p><strong>업로드 성공!</strong></p>
+                <p><strong>회의 ID:</strong> {{ meeting_data.meeting_id }}</p>
+                <p><strong>회의명:</strong> {{ meeting_data.name }}</p>
+                <p><strong>날짜:</strong> {{ meeting_data.date }}</p>
+            </div>
+
+            {% if meeting_data.password %}
+            <div class="password-box">
+                <h4>생성된 비밀번호</h4>
+                <p><strong>비밀번호:</strong> {{ meeting_data.password }}</p>
+                <p>이 비밀번호를 안전한 곳에 보관하세요. 회의 접근 시 필요합니다.</p>
+            </div>
+            {% endif %}
+
+            <div class="summary-box">
+                <h4>3줄 요약</h4>
+                <div class="summary-content">{{ summary }}</div>
+            </div>
+
+            <!-- TODO 섹션 추가 -->
+            {% if meeting_data.todo_result %}
+            <div class="todo-box" style="margin: 30px 0; background-color: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid #28a745;">
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0; color: #28a745;">📋 추출된 TODO 리스트</h4>
+                    <div style="display: flex; gap: 10px; margin-left: auto;">
+                        <button onclick="regenerateTodo()" class="download-button" style="background-color: #6c757d; color: white; font-size: 12px; padding: 8px 12px;">🔄 TODO 재생성</button>
+                        <button onclick="copyTodo()" class="download-button" style="background-color: #17a2b8; color: white; font-size: 12px; padding: 8px 12px;">📋 TODO 복사</button>
+                        <button onclick="toggleEditMode()" class="download-button" style="background-color: #ffc107; color: #212529; font-size: 12px; padding: 8px 12px;">✏️ 편집하기</button>
+                    </div>
+                </div>
+                
+                <!-- TODO 메타 정보 -->
+                <div style="margin-bottom: 15px; font-size: 14px; color: #6c757d;">
+                    <span>🎯 추출 방법: {{ meeting_data.todo_result.method }}</span> | 
+                    <span>📊 신뢰도: {{ "%.0f"|format(meeting_data.todo_result.confidence_score * 100) }}%</span>
+                    {% if meeting_data.todo_result.learning_occurred %}
+                        | <span style="color: #28a745;">✅ 학습완료</span>
+                    {% elif meeting_data.todo_result.get('user_approved') %}
+                        | <span style="color: #28a745;">✅ 사용자승인</span>
+                    {% elif meeting_data.todo_result.get('needs_user_approval') %}
+                        | <span style="color: #ffc107;">⏳ 승인대기</span>
+                    {% endif %}
+                </div>
+                
+                <!-- TODO 내용 -->
+                <div id="todo-display" style="line-height: 1.6; white-space: pre-line; background-color: white; padding: 15px; border-radius: 4px;">{{ meeting_data.todo_result.generated_todo }}</div>
+                
+                <!-- 편집 모드 -->
+                <div id="todo-edit" style="display: none;">
+                    <textarea id="todo-textarea" style="width: 100%; height: 200px; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; font-family: inherit; line-height: 1.6; resize: vertical;">{{ meeting_data.todo_result.generated_todo }}</textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button onclick="saveTodo()" class="download-button" style="background-color: #28a745; color: white; font-size: 12px; padding: 8px 12px;">💾 학습용 저장</button>
+                        <button onclick="cancelEdit()" class="download-button" style="background-color: #6c757d; color: white; font-size: 12px; padding: 8px 12px;">❌ 취소</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="download-section">
+                <h4>파일 다운로드</h4>
+                <button onclick="downloadFile('pdf')" class="download-button pdf-button">PDF로 다운로드</button>
+                <button onclick="downloadFile('txt')" class="download-button txt-button">TXT로 다운로드</button>
+                <div id="download-status" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+            </div>
+
+            <div class="share-section">
+                <h4>공유하기</h4>
+                <button id="generateUrlBtn" class="download-button share-button">URL 생성하기</button>
+                <div id="shareResult" style="display: none; margin-top: 15px; padding: 15px; background-color: #e8f5e8; border-radius: 4px;">
+                    <p><strong>공유 URL:</strong> <span id="shareUrl"></span></p>
+                    <p><strong>접근 방법:</strong> <span id="authKey"></span></p>
+                    <button id="copyUrlBtn" class="download-button copy-button" style="margin-top: 10px;">URL 복사</button>
+                </div>
+            </div>
+
+            <a href="/" class="back-button">새 회의 업로드</a>
+        </div>
+    </div>
+
+    <script>
+        const currentMeetingId = "{{ meeting_data.meeting_id }}";
+        
+        // 회의 목록 로드
+        async function loadMeetings() {
+            try {
+                const response = await fetch('/api/meetings');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const meetingsList = document.getElementById('meetings-list');
+                    meetingsList.innerHTML = '';
+                    
+                    data.meetings.forEach(meeting => {
+                        const meetingItem = document.createElement('div');
+                        meetingItem.className = 'meeting-item';
+                        if (meeting.meeting_id === currentMeetingId) {
+                            meetingItem.classList.add('active');
+                        }
+                        
+                        meetingItem.innerHTML = `
+                            <div class="meeting-name">${meeting.name}</div>
+                            <div class="meeting-date">${meeting.date}</div>
+                        `;
+                        
+                        meetingItem.onclick = () => {
+                            if (meeting.meeting_id !== currentMeetingId) {
+                                window.location.href = `/result/${meeting.meeting_id}`;
+                            }
+                        };
+                        
+                        meetingsList.appendChild(meetingItem);
+                    });
+                }
+            } catch (error) {
+                console.error('회의 목록 로드 실패:', error);
+            }
+        }
+        
+        // 페이지 로드 시 회의 목록 로드
+        window.onload = function() {
+            loadMeetings();
+            
+            // URL 생성 버튼 이벤트
+            document.getElementById('generateUrlBtn').addEventListener('click', generateShareUrl);
+            
+            // URL 복사 버튼 이벤트
+            document.getElementById('copyUrlBtn').addEventListener('click', copyShareUrl);
+        };
+        
+        // 공유 URL 생성
+        async function generateShareUrl() {
+            try {
+                const response = await fetch(`/api/url/generate/${currentMeetingId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const shareResult = document.getElementById('shareResult');
+                    const shareUrl = document.getElementById('shareUrl');
+                    const authKey = document.getElementById('authKey');
+                    
+                    // 전체 URL 생성
+                    const fullUrl = window.location.origin + data.data.share_url;
+                    
+                    shareUrl.textContent = fullUrl;
+                    
+                    // 비밀번호 필요 여부에 따라 다른 메시지 표시
+                    if (data.data.requires_password) {
+                        authKey.textContent = '회의 생성 시 설정한 비밀번호가 필요합니다';
+                        authKey.style.color = '#dc3545';
+                        authKey.style.fontWeight = 'normal';
+                    } else {
+                        authKey.textContent = '비밀번호 없이 바로 접근 가능합니다';
+                        authKey.style.color = '#28a745';
+                        authKey.style.fontWeight = 'normal';
+                    }
+                    
+                    shareResult.style.display = 'block';
+                } else {
+                    alert('URL 생성 실패: ' + data.message);
+                }
+            } catch (error) {
+                alert('URL 생성 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        // URL 복사
+        function copyShareUrl() {
+            const shareUrl = document.getElementById('shareUrl').textContent;
+            
+            navigator.clipboard.writeText(shareUrl).then(function() {
+                alert('URL이 클립보드에 복사되었습니다!');
+            }).catch(function(err) {
+                // fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = shareUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('URL이 클립보드에 복사되었습니다!');
+            });
+        }
+        
+        // TODO 관련 함수들
+        function regenerateTodo() {
+            if (!confirm('TODO를 재생성하시겠습니까?')) return;
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '🔄 생성중...';
+            button.disabled = true;
+            
+            fetch(`/api/meeting/${currentMeetingId}/regenerate-todo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload(); // 페이지 새로고침으로 새로운 TODO 표시
+                } else {
+                    alert('TODO 재생성 실패: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('TODO 재생성 중 오류가 발생했습니다: ' + error.message);
+            })
+            .finally(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        function copyTodo() {
+            const todoText = document.getElementById('todo-display').textContent;
+            
+            navigator.clipboard.writeText(todoText).then(function() {
+                alert('TODO가 클립보드에 복사되었습니다!');
+            }).catch(function(err) {
+                // fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = todoText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('TODO가 클립보드에 복사되었습니다!');
+            });
+        }
+        
+        function toggleEditMode() {
+            const display = document.getElementById('todo-display');
+            const edit = document.getElementById('todo-edit');
+            
+            if (edit.style.display === 'none') {
+                display.style.display = 'none';
+                edit.style.display = 'block';
+            } else {
+                display.style.display = 'block';
+                edit.style.display = 'none';
+            }
+        }
+        
+        function cancelEdit() {
+            const display = document.getElementById('todo-display');
+            const edit = document.getElementById('todo-edit');
+            const textarea = document.getElementById('todo-textarea');
+            
+            // 원래 내용으로 복원
+            textarea.value = display.textContent;
+            
+            display.style.display = 'block';
+            edit.style.display = 'none';
+        }
+        
+        function saveTodo() {
+            const textarea = document.getElementById('todo-textarea');
+            const editedTodo = textarea.value.trim();
+            
+            if (!editedTodo) {
+                alert('TODO 내용을 입력해주세요.');
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '💾 저장중...';
+            button.disabled = true;
+            
+            fetch(`/api/meeting/${currentMeetingId}/save-todo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    edited_todo: editedTodo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('TODO가 학습용 데이터로 저장되었습니다!');
+                    location.reload(); // 페이지 새로고침으로 상태 업데이트 표시
+                } else {
+                    alert('TODO 저장 실패: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('TODO 저장 중 오류가 발생했습니다: ' + error.message);
+            })
+            .finally(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

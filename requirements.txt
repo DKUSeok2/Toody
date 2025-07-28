@@ -1,0 +1,28 @@
+# Summary Project with TODO Extraction Dependencies
+
+# 웹 프레임워크
+Flask>=2.3.0
+flask-cors>=4.0.0
+Werkzeug>=2.3.0
+
+# AI 및 LLM
+requests>=2.31.0
+
+# TODO 추출을 위한 벡터 DB 및 임베딩
+chromadb>=0.4.15
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# PDF 처리
+PyMuPDF>=1.23.0
+
+# 환경 설정
+python-dotenv>=1.0.0
+
+# 유틸리티
+uuid
+
+# 선택사항 (더 나은 성능을 위해)
+# torch>=2.0.0  # sentence-transformers를 위해 필요할 수 있음
+# transformers>=4.30.0  # 로컬 모델 지원을 위해 
