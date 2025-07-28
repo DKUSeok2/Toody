@@ -16,7 +16,7 @@ export default function DownloadButtons({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center gap-2.5 px-9 py-5 bg-[#191A23] hover:bg-[#2a2b36] text-white rounded-lg font-medium transition-colors min-w-[100px] h-[48px]"
+        className="flex items-center justify-center gap-2.5 px-9 py-5 bg-[#191A23] hover:bg-[#5A6BFF] text-white rounded-lg font-medium transition-colors min-w-[100px] h-[48px]"
       >
         파일 다운로드
         <ChevronDownIcon

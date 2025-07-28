@@ -93,10 +93,26 @@ export default function ResultPage() {
     router.push("/");
   };
 
+  const handleShare = () => {
+    // API에서 받아온 shared url로 수정 필요 (현재는 현재 페이지 링크로 복사됨)
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        alert("링크가 클립보드에 복사되었습니다!");
+      })
+      .catch(() => {
+        alert("링크 복사에 실패했습니다.");
+      });
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <Header onLogoClick={handleLogoClick} onNewMeeting={handleNewMeeting} />
+      <Header
+        onLogoClick={handleLogoClick}
+        onNewMeeting={handleNewMeeting}
+        onShare={handleShare}
+      />
 
       <div className="flex">
         {/* 사이드바 */}
